@@ -41,9 +41,11 @@ public class HBaseManager {
 			TableName tableNameObj = TableName.valueOf(tableName);
 			if (!admin.tableExists(tableNameObj)) {
 				HTableDescriptor tblDesc = new HTableDescriptor(tableNameObj);
-				String familyName = getFamilyName(clazz);
-				if (familyName != null) {
-					tblDesc.addFamily(new HColumnDescriptor(familyName));
+				Field[] fields = clazz.getFields();
+				for (Field field: fields) {
+					if (isColumn(field)) {
+						tblDesc.addFamily(new HColumnDescriptor(getColumnName(field)));
+					}
 				}
 				admin.createTable(tblDesc);
 			}
@@ -62,7 +64,34 @@ public class HBaseManager {
 		}
 		return null;
 	}
-	
+
+	public static <T> void deleteTable(Class<T> clazz) {
+		String tableName = getTableName(clazz);
+		if (tableName == null || tableName.equals("")) {
+			return;
+		}
+
+		Connection connection = null;
+		try {
+			connection = ConnectionFactory.createConnection(conf);
+			Admin admin = connection.getAdmin();
+			TableName tableNameObj = TableName.valueOf(tableName);
+			if (admin.tableExists(tableNameObj)) {
+				admin.disableTable(tableNameObj);
+				admin.deleteTable(tableNameObj);
+			}
+		} catch (IOException e) {
+			e.printStackTrace();
+			if (connection != null) {
+				try {
+					connection.close();
+				} catch (IOException e1) {
+					e1.printStackTrace();
+				}
+			}
+		}
+	}
+
 	private static void releaseTable(Table table) {
 		if (table != null) {
 			Connection connection = connections.get(table);
@@ -100,7 +129,7 @@ public class HBaseManager {
         		ResultScanner resultScanner = table.getScanner(scan);
         		Result next = resultScanner.next();
         		while (next != null) {
-        			T tempT = cellsToObject(clazz, next.listCells());
+        			T tempT = resultToObject(next, clazz);
         			if (tempT != null) {
         				resultList.add(tempT);        				
         			}
@@ -126,7 +155,7 @@ public class HBaseManager {
     		try {
 				Result result = table.get(get);
 				if (result != null) {
-					t = cellsToObject(clazz, result.listCells());
+					t = resultToObject(result, clazz);
 				}
 			} catch (IOException e) {
 				e.printStackTrace();
@@ -138,28 +167,26 @@ public class HBaseManager {
 		return t;
 	}
 	
-	private static <T> T cellsToObject(Class<T> clazz, List<Cell> cells) {
+	private static <T> T resultToObject(Result result, Class<T> clazz) {
 		T t = null;
 		
-		if (cells != null) {
-			try {
-				t = clazz.newInstance();
-				for (int i = 0, size = cells.size(); i < size; i++) {
-					Cell cell = cells.get(i);
-					if (i == 0) {
-						String family = Bytes.toString(CellUtil.cloneFamily(cell));
-						byte[] row = CellUtil.cloneRow(cell);
-						setValue(clazz, t, family, row);
+		if (result != null) {
+			List<Cell> cells  = result.listCells();
+			if (cells != null) {
+				try {
+					t = clazz.newInstance();
+					setValue(clazz, t, getRowIdName(clazz), result.getRow());
+
+					for (Cell cell: cells) {
+						String key = Bytes.toString(CellUtil.cloneFamily(cell));
+						byte[] value = CellUtil.cloneValue(cell);
+						setValue(clazz, t, key, value);
 					}
-					
-					String key = Bytes.toString(CellUtil.cloneQualifier(cell));
-					byte[] value = CellUtil.cloneValue(cell);
-					setValue(clazz, t, key, value);
+				} catch (InstantiationException e) {
+					e.printStackTrace();
+				} catch (IllegalAccessException e) {
+					e.printStackTrace();
 				}
-			} catch (InstantiationException e) {
-				e.printStackTrace();
-			} catch (IllegalAccessException e) {
-				e.printStackTrace();
 			}
 		}
 		return t;
@@ -224,7 +251,7 @@ public class HBaseManager {
     	
     	return true;
 	}
-	
+
 	private static <T> String getTableName(Class<T> clazz) {
 		com.xiyuan.hbase.annotation.Table tableAnno = clazz.getAnnotation(com.xiyuan.hbase.annotation.Table.class);
 		if (tableAnno == null) {
@@ -239,32 +266,32 @@ public class HBaseManager {
 		}
 	}
 
-	private static <T> String getFamilyName(Class<T> clazz) {
+	private static <T> String getRowIdName(Class<T> clazz) {
 		Field[] fields = clazz.getFields();
 		for(Field field: fields) {
-			Family familyAnno = field.getAnnotation(Family.class);
-			if (familyAnno != null) {
-				String familyName = familyAnno.name();
-				if (familyName.equals("")) {
-					familyName = field.getName();
+			RowId rowIdAnno = field.getAnnotation(RowId.class);
+			if (rowIdAnno != null) {
+				String rowIdAnnoName = rowIdAnno.name();
+				if (rowIdAnnoName.equals("")) {
+					rowIdAnnoName = field.getName();
 				}
-				return familyName;
+				return rowIdAnnoName;
 			}
 		}
 		return null;
 	}
 
-	private static String getFamilyName(Field field) {
-		Family familyAnno = field.getAnnotation(Family.class);
-		if (familyAnno == null) {
+	private static String getRowIdName(Field field) {
+		RowId rowIdAnno = field.getAnnotation(RowId.class);
+		if (rowIdAnno == null) {
 			return null;
 		}
 		else {
-			String familyName = familyAnno.name();
-			if (familyName.equals("")) {
-				familyName = field.getName();
+			String rowIdAnnoName = rowIdAnno.name();
+			if (rowIdAnnoName.equals("")) {
+				rowIdAnnoName = field.getName();
 			}
-			return familyName;
+			return rowIdAnnoName;
 		}
 	}
 	
@@ -282,9 +309,9 @@ public class HBaseManager {
 		}
 	}
 	
-	private static boolean isFamily(Field field) {
-		Family familyAnno = field.getAnnotation(Family.class);
-		return familyAnno != null;
+	private static boolean isRowId(Field field) {
+		RowId rowIdAnno = field.getAnnotation(RowId.class);
+		return rowIdAnno != null;
 	}
 	
 	private static boolean isColumn(Field field) {
@@ -296,14 +323,12 @@ public class HBaseManager {
 		Field[] fields = clazz.getDeclaredFields();
 		
 		Put put = null;
-		byte[] family = null;
 		for (Field field : fields) {
-			if (isFamily(field)) {
+			if (isRowId(field)) {
 				try {
 					byte[] row = fieldValueToBytes(clazz, instance, field);
 					if (row != null) {
 						put = new Put(row);
-						family = Bytes.toBytes(getFamilyName(field));
 					}
 				} catch (IllegalArgumentException e) {
 					e.printStackTrace();
@@ -312,12 +337,12 @@ public class HBaseManager {
 			}
 		}
 		
-		if (put != null && family != null) {
+		if (put != null) {
 			for (Field field : fields) {
 				if (isColumn(field)) {
 					byte[] columnName = Bytes.toBytes(getColumnName(field));
 					byte[] columnValue = fieldValueToBytes(clazz, instance, field);
-					put.addColumn(family, columnName, columnValue);
+					put.addColumn(columnName, null, columnValue);
 				}
 			}
 		}

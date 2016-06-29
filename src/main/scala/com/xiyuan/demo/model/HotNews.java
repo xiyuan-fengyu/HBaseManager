@@ -1,7 +1,7 @@
 package com.xiyuan.demo.model;
 
 import com.xiyuan.hbase.annotation.Column;
-import com.xiyuan.hbase.annotation.Family;
+import com.xiyuan.hbase.annotation.RowId;
 import com.xiyuan.hbase.annotation.Table;
 
 /**
@@ -10,7 +10,7 @@ import com.xiyuan.hbase.annotation.Table;
 @Table
 public class HotNews {
 
-    @Family
+    @RowId
     public String id;
 
     @Column

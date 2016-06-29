@@ -1,13 +1,13 @@
 package com.xiyuan.demo.model;
 
 import com.xiyuan.hbase.annotation.Column;
-import com.xiyuan.hbase.annotation.Family;
+import com.xiyuan.hbase.annotation.RowId;
 import com.xiyuan.hbase.annotation.Table;
 
 @Table(name="hbaseTest")
 public class HBaseTest {
 
-	@Family
+	@RowId
 	public String id;
 	
 	@Column
