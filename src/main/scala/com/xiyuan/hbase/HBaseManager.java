@@ -175,7 +175,7 @@ public class HBaseManager {
 			if (cells != null) {
 				try {
 					t = clazz.newInstance();
-					setValue(clazz, t, getRowIdName(clazz), result.getRow());
+					setValue(clazz, t, getRowKeyName(clazz), result.getRow());
 
 					for (Cell cell: cells) {
 						String key = Bytes.toString(CellUtil.cloneFamily(cell));
@@ -266,12 +266,12 @@ public class HBaseManager {
 		}
 	}
 
-	private static <T> String getRowIdName(Class<T> clazz) {
+	private static <T> String getRowKeyName(Class<T> clazz) {
 		Field[] fields = clazz.getFields();
 		for(Field field: fields) {
-			RowId rowIdAnno = field.getAnnotation(RowId.class);
-			if (rowIdAnno != null) {
-				String rowIdAnnoName = rowIdAnno.name();
+			RowKey rowKeyAnno = field.getAnnotation(RowKey.class);
+			if (rowKeyAnno != null) {
+				String rowIdAnnoName = rowKeyAnno.name();
 				if (rowIdAnnoName.equals("")) {
 					rowIdAnnoName = field.getName();
 				}
@@ -281,13 +281,13 @@ public class HBaseManager {
 		return null;
 	}
 
-	private static String getRowIdName(Field field) {
-		RowId rowIdAnno = field.getAnnotation(RowId.class);
-		if (rowIdAnno == null) {
+	private static String getRowKeyName(Field field) {
+		RowKey rowKeyAnno = field.getAnnotation(RowKey.class);
+		if (rowKeyAnno == null) {
 			return null;
 		}
 		else {
-			String rowIdAnnoName = rowIdAnno.name();
+			String rowIdAnnoName = rowKeyAnno.name();
 			if (rowIdAnnoName.equals("")) {
 				rowIdAnnoName = field.getName();
 			}
@@ -309,9 +309,9 @@ public class HBaseManager {
 		}
 	}
 	
-	private static boolean isRowId(Field field) {
-		RowId rowIdAnno = field.getAnnotation(RowId.class);
-		return rowIdAnno != null;
+	private static boolean isRowKey(Field field) {
+		RowKey rowKeyAnno = field.getAnnotation(RowKey.class);
+		return rowKeyAnno != null;
 	}
 	
 	private static boolean isColumn(Field field) {
@@ -324,7 +324,7 @@ public class HBaseManager {
 		
 		Put put = null;
 		for (Field field : fields) {
-			if (isRowId(field)) {
+			if (isRowKey(field)) {
 				try {
 					byte[] row = fieldValueToBytes(clazz, instance, field);
 					if (row != null) {
