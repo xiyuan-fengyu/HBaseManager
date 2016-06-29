@@ -10,10 +10,10 @@ import java.util.Set;
 
 public class ConfigUtil {
 
-	private static final String PACKAGE_ROOT = "./src/main/java/";
+	private static final String PACKAGE_ROOT = "./src/main/scala/";
 	
 	public static void main(String[] args) {
-		propertiesToClass("config.properties", "com.xiyuan.hbase");
+		propertiesToClass("HBaseConfig.properties", "com.xiyuan.hbase");
 	}
 	
 	private static final String rLongOrInt = "-[0-9]{1,19}|[+]{0,1}[0-9]{1,19}";

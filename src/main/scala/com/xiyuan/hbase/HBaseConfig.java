@@ -1,10 +1,11 @@
 package com.xiyuan.hbase;
 
 import java.util.Properties;
+import com.xiyuan.hbase.ConfigUtil;
 
-public class Config {
+public class HBaseConfig {
 
-	private static final Properties properties = ConfigUtil.loadProperties("config.properties");
+	private static final Properties properties = ConfigUtil.loadProperties("HBaseConfig.properties");
 
 	public static final String hbase_zookeeper_quorum = properties.getProperty("hbase.zookeeper.quorum");
 

@@ -24,9 +24,9 @@ public class HBaseManager {
 	private static final Configuration conf = HBaseConfiguration.create();
 	
 	static {
-		conf.set("hbase.zookeeper.property.clientPort", "" + Config.hbase_zookeeper_property_clientPort);
-		conf.set("hbase.zookeeper.quorum", Config.hbase_zookeeper_quorum);
-		conf.set("hbase.master", Config.hbase_master);
+		conf.set("hbase.zookeeper.property.clientPort", "" + HBaseConfig.hbase_zookeeper_property_clientPort);
+		conf.set("hbase.zookeeper.quorum", HBaseConfig.hbase_zookeeper_quorum);
+		conf.set("hbase.master", HBaseConfig.hbase_master);
 	}
 	
 	private static final Map<Table, Connection> connections = new HashMap<Table, Connection>();
