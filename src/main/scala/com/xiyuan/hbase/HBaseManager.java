@@ -3,10 +3,7 @@ package com.xiyuan.hbase;
 import com.xiyuan.hbase.annotation.*;
 import com.xiyuan.hbase.annotation.Column;
 import org.apache.hadoop.conf.Configuration;
-import org.apache.hadoop.hbase.Cell;
-import org.apache.hadoop.hbase.CellUtil;
-import org.apache.hadoop.hbase.HBaseConfiguration;
-import org.apache.hadoop.hbase.TableName;
+import org.apache.hadoop.hbase.*;
 import org.apache.hadoop.hbase.client.*;
 import org.apache.hadoop.hbase.client.Table;
 import org.apache.hadoop.hbase.util.Bytes;
@@ -30,15 +27,28 @@ public class HBaseManager {
 	}
 	
 	private static final Map<Table, Connection> connections = new HashMap<Table, Connection>();
-	
-	private static Table getTable(String tableName) {
+
+	private static <T> Table getTable(Class<T> clazz) {
+		String tableName = getTableName(clazz);
+		if (tableName == null || tableName.equals("")) {
+			return null;
+		}
+
 		Connection connection = null;
 		try {
 			connection = ConnectionFactory.createConnection(conf);
-			Table table = connection.getTable(TableName.valueOf(tableName));
-			if (table != null) {
-				connections.put(table, connection);
+			Admin admin = connection.getAdmin();
+			TableName tableNameObj = TableName.valueOf(tableName);
+			if (!admin.tableExists(tableNameObj)) {
+				HTableDescriptor tblDesc = new HTableDescriptor(tableNameObj);
+				String familyName = getFamilyName(clazz);
+				if (familyName != null) {
+					tblDesc.addFamily(new HColumnDescriptor(familyName));
+				}
+				admin.createTable(tblDesc);
 			}
+			Table table = connection.getTable(TableName.valueOf(tableName));
+			connections.put(table, connection);
 			return table;
 		} catch (IOException e) {
 			e.printStackTrace();
@@ -77,12 +87,7 @@ public class HBaseManager {
 	public static <T> ArrayList<T> scan(Class<T> clazz, String startRow, String stopRow) {
 		ArrayList<T> resultList = new ArrayList<T>(); 
 		
-		String tableName = getTableName(clazz);
-		if (tableName == null || tableName.equals("")) {
-			return resultList;
-		}
-		
-		final Table table = getTable(tableName);
+		final Table table = getTable(clazz);
     	if (table != null) {
     		try {
     			Scan scan = new Scan();
@@ -115,12 +120,7 @@ public class HBaseManager {
 	public static <T> T find(Class<T> clazz, String rowId) {
 		T t = null;
 		
-		String tableName = getTableName(clazz);
-		if (tableName == null || tableName.equals("")) {
-			return t;
-		}
-		
-		final Table table = getTable(tableName);
+		final Table table = getTable(clazz);
     	if (table != null) {
     		Get get = new Get(Bytes.toBytes(rowId));
     		try {
@@ -173,12 +173,7 @@ public class HBaseManager {
 		@SuppressWarnings("unchecked")
 		Class<T> clazz = (Class<T>) t.getClass();
 		
-		String tableName = getTableName(clazz);
-		if (tableName == null || tableName.equals("")) {
-			return false;
-		}
-		
-		final Table table = getTable(tableName);
+		final Table table = getTable(clazz);
     	if (table != null) {
     		Put put = createPut(clazz, t);
 			if (put != null) {
@@ -206,12 +201,7 @@ public class HBaseManager {
 		@SuppressWarnings("unchecked")
 		Class<T> clazz = (Class<T>) list.get(0).getClass();
 		
-		String tableName = getTableName(clazz);
-		if (tableName == null || tableName.equals("")) {
-			return false;
-		}
-		
-		final Table table = getTable(tableName);
+		final Table table = getTable(clazz);
     	if (table != null) {
     		List<Put> puts = new ArrayList<Put>();
     		for (T t : list) {
@@ -248,7 +238,22 @@ public class HBaseManager {
 			return tableName;
 		}
 	}
-	
+
+	private static <T> String getFamilyName(Class<T> clazz) {
+		Field[] fields = clazz.getFields();
+		for(Field field: fields) {
+			Family familyAnno = field.getAnnotation(Family.class);
+			if (familyAnno != null) {
+				String familyName = familyAnno.name();
+				if (familyName.equals("")) {
+					familyName = field.getName();
+				}
+				return familyName;
+			}
+		}
+		return null;
+	}
+
 	private static String getFamilyName(Field field) {
 		Family familyAnno = field.getAnnotation(Family.class);
 		if (familyAnno == null) {
@@ -265,15 +270,15 @@ public class HBaseManager {
 	
 	private static String getColumnName(Field field) {
 		Column columnAnno = field.getAnnotation(Column.class);
-		if (columnAnno == null) {
-			return null;
-		}
-		else {
+		if (columnAnno != null) {
 			String columnName = columnAnno.name();
 			if (columnName.equals("")) {
 				columnName = field.getName();
 			}
 			return columnName;
+		}
+		else {
+			return null;
 		}
 	}
 	
