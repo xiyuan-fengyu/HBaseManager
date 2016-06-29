@@ -1,6 +1,6 @@
 package com.xiyuan.demo
 
-import com.xiyuan.demo.model.HBaseTest
+import com.xiyuan.demo.model.{HotNews, HBaseTest}
 import com.xiyuan.hbase.HBaseManager
 
 /**
@@ -9,7 +9,7 @@ import com.xiyuan.hbase.HBaseManager
 object App {
 
   def main(args: Array[String]) {
-    HBaseManager.scan(classOf[HBaseTest], "row0", null).toArray().foreach(println)
+    HBaseManager.scan(classOf[HotNews], null, null).toArray().foreach(println)
   }
 
 }
