@@ -2,10 +2,14 @@ package com.xiyuan.hbase;
 
 import com.xiyuan.hbase.annotation.*;
 import com.xiyuan.hbase.annotation.Column;
+import com.xiyuan.hbase.filter.ColumnFilter;
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.hbase.*;
 import org.apache.hadoop.hbase.client.*;
 import org.apache.hadoop.hbase.client.Table;
+import org.apache.hadoop.hbase.filter.Filter;
+import org.apache.hadoop.hbase.filter.FilterList;
+import org.apache.hadoop.hbase.filter.SingleColumnValueFilter;
 import org.apache.hadoop.hbase.util.Bytes;
 
 import java.io.IOException;
@@ -15,6 +19,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import com.xiyuan.hbase.filter.*;
 
 public class HBaseManager {
 
@@ -113,7 +118,7 @@ public class HBaseManager {
 		}
 	}
 	
-	public static <T> ArrayList<T> scan(Class<T> clazz, String startRow, String stopRow) {
+	public static <T> ArrayList<T> scan(Class<T> clazz, String startRow, String stopRow, ColumnFilter... filters) {
 		ArrayList<T> resultList = new ArrayList<T>(); 
 		
 		final Table table = getTable(clazz);
@@ -126,6 +131,29 @@ public class HBaseManager {
     			if (stopRow != null && !stopRow.equals("")) {
     				scan.setStopRow(Bytes.toBytes(stopRow));
     			}
+
+				if (filters != null) {
+					if (filters.length == 1) {
+						SingleColumnValueFilter temp = ColumnFilterExt.ColumnFilterToSingleColumnValueFilter(filters[0]).singleFilter(clazz);
+						if (temp != null) {
+							scan.setFilter(temp);
+						}
+					}
+					else {
+						List<Filter> columnFilters = new ArrayList<Filter>();
+						for (ColumnFilter f: filters) {
+							SingleColumnValueFilter temp = ColumnFilterExt.ColumnFilterToSingleColumnValueFilter(f).singleFilter(clazz);
+							if (temp != null) {
+								columnFilters.add(temp);
+							}
+						}
+						if (columnFilters.size() > 1) {
+							FilterList filterList = new FilterList(FilterList.Operator.MUST_PASS_ALL, columnFilters);
+							scan.setFilter(filterList);
+						}
+					}
+				}
+
         		ResultScanner resultScanner = table.getScanner(scan);
         		Result next = resultScanner.next();
         		while (next != null) {
