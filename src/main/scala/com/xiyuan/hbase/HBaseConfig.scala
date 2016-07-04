@@ -2,6 +2,9 @@ package com.xiyuan.hbase
 
 import com.xiyuan.hbase.util.ConfigUtil
 
+/**
+	* Created by xiyuan_fengyu on 2016/7/1.
+	*/
 object HBaseConfig {
 
 	private val properties = ConfigUtil.loadProperties("HBaseConfig.properties")

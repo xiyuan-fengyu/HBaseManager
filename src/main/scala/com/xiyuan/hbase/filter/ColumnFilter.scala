@@ -8,7 +8,7 @@ import org.apache.hadoop.hbase.util.Bytes
 import scala.util.matching.Regex
 
 /**
-  * Created by YT on 2016/6/30.
+  * Created by xiyuan_fengyu on 2016/6/30.
   */
 /**
   * express的格式为([^=!<>]+)(=|!=|<|<=|>|>=)([^=!<>]*)

@@ -20,6 +20,9 @@ import scala.collection.mutable
 import scala.collection.mutable.ArrayBuffer
 import scala.reflect.ClassTag
 
+/**
+  * Created by xiyuan_fengyu on 2016/7/1.
+  */
 object HBaseManager {
 
   private val conf: Configuration = HBaseConfiguration.create

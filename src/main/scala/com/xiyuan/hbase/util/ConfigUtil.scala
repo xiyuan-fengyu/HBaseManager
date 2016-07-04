@@ -4,7 +4,7 @@ import java.io.{File, FileOutputStream}
 import java.util.Properties
 
 /**
-  * Created by YT on 2016/7/1.
+  * Created by xiyuan_fengyu on 2016/7/1.
   */
 object ConfigUtil {
 

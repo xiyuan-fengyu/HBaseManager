@@ -5,7 +5,7 @@ import com.xiyuan.hbase.annotation.RowKey;
 import com.xiyuan.hbase.annotation.Table;
 
 /**
- * Created by YT on 2016/6/29.
+ * Created by xiyuan_fengyu on 2016/6/29.
  */
 @Table
 public class HotNews {

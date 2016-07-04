@@ -1,7 +1,7 @@
 package com.xiyuan.demo.extension
 
 /**
-  * Created by YT on 2016/6/30.
+  * Created by xiyuan_fengyu on 2016/6/30.
   */
 object RandomExt {
 

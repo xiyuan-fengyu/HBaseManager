@@ -10,7 +10,7 @@ import com.xiyuan.demo.extension.RandomExt._
 import scala.collection.mutable.ArrayBuffer
 
 /**
-  * Created by YT on 2016/6/29.
+  * Created by xiyuan_fengyu on 2016/6/29.
   */
 object App {
 

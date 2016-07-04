@@ -4,6 +4,9 @@ import com.xiyuan.hbase.annotation.Column;
 import com.xiyuan.hbase.annotation.RowKey;
 import com.xiyuan.hbase.annotation.Table;
 
+/**
+ * Created by xiyuan_fengyu on 2016/7/1.
+ */
 @Table(name="hbaseTest")
 public class HBaseTest {
 
