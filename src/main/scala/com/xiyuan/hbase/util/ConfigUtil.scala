@@ -54,7 +54,8 @@ object ConfigUtil {
 
       }
 
-      var className: String = fileName.split("\\.")(0)
+      val lastSperator = fileName.replaceAll("\\\\", "/").lastIndexOf("/") + 1
+      var className: String = fileName.substring(lastSperator).split("\\.")(0)
       val cArr: Array[Char] = className.toCharArray
       if (cArr.length > 0 && cArr(0) >= 'a' && cArr(0) <= 'z') {
         cArr(0) = (cArr(0) + 'A'.toInt - 'a'.toInt).toChar
