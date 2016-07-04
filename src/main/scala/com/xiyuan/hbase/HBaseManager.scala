@@ -23,12 +23,9 @@ import scala.reflect.ClassTag
 object HBaseManager {
 
   private val conf: Configuration = HBaseConfiguration.create
-
-  try {
-    conf.set("hbase.zookeeper.property.clientPort", "" + HBaseConfig.hbase_zookeeper_property_clientPort)
-    conf.set("hbase.zookeeper.quorum", HBaseConfig.hbase_zookeeper_quorum)
-    conf.set("hbase.master", HBaseConfig.hbase_master)
-  }
+  conf.set("hbase.zookeeper.property.clientPort", "" + HBaseConfig.hbase_zookeeper_property_clientPort)
+  conf.set("hbase.zookeeper.quorum", HBaseConfig.hbase_zookeeper_quorum)
+  conf.set("hbase.master", HBaseConfig.hbase_master)
 
   private val connections: mutable.HashMap[Table, Connection] = new mutable.HashMap[Table, Connection]
 
