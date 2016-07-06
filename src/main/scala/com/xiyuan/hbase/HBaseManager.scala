@@ -15,6 +15,7 @@ import java.io.IOException
 import java.lang.reflect.Field
 import java.math.BigDecimal
 import com.xiyuan.hbase.filter._
+import org.apache.log4j.PropertyConfigurator
 
 import scala.collection.mutable
 import scala.collection.mutable.ArrayBuffer
@@ -24,6 +25,9 @@ import scala.reflect.ClassTag
   * Created by xiyuan_fengyu on 2016/7/1.
   */
 object HBaseManager {
+
+  //如果log4j的配置文件不再根目录则可通过下面的方法手动设置
+//  PropertyConfigurator.configure(this.getClass.getClassLoader.getResource("property/log4j.properties").getPath)
 
   private val conf: Configuration = HBaseConfiguration.create
   conf.set("hbase.zookeeper.property.clientPort", "" + HBaseConfig.hbase_zookeeper_property_clientPort)
