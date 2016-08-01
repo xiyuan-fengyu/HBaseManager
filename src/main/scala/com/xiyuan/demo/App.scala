@@ -15,6 +15,9 @@ import scala.collection.mutable.ArrayBuffer
 object App {
 
   def main(args: Array[String]) {
+    //用于初始化连接（第一次连接需要较长时间）
+//    HBaseManager.testConnection(classOf[HBaseTest])
+
     //删除表
 //    HBaseManager.deleteTable(classOf[HBaseTest])
 

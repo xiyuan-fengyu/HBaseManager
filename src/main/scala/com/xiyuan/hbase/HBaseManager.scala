@@ -1,20 +1,16 @@
 package com.xiyuan.hbase
 
-import com.xiyuan.hbase.annotation._
-import com.xiyuan.hbase.annotation.Column
-import com.xiyuan.hbase.filter.ColumnFilter
-import org.apache.hadoop.conf.Configuration
-import org.apache.hadoop.hbase._
-import org.apache.hadoop.hbase.client._
-import org.apache.hadoop.hbase.client.Table
-import org.apache.hadoop.hbase.filter.Filter
-import org.apache.hadoop.hbase.filter.FilterList
-import org.apache.hadoop.hbase.filter.SingleColumnValueFilter
-import org.apache.hadoop.hbase.util.Bytes
 import java.io.IOException
 import java.lang.reflect.Field
 import java.math.BigDecimal
-import com.xiyuan.hbase.filter._
+
+import com.xiyuan.hbase.annotation.{Column, _}
+import com.xiyuan.hbase.filter.{ColumnFilter, _}
+import org.apache.hadoop.conf.Configuration
+import org.apache.hadoop.hbase._
+import org.apache.hadoop.hbase.client.{Table, _}
+import org.apache.hadoop.hbase.filter.{Filter, FilterList, SingleColumnValueFilter}
+import org.apache.hadoop.hbase.util.Bytes
 import org.apache.log4j.PropertyConfigurator
 
 import scala.collection.mutable
@@ -26,8 +22,7 @@ import scala.reflect.ClassTag
   */
 object HBaseManager {
 
-  //如果log4j的配置文件不再根目录则可通过下面的方法手动设置
-//  PropertyConfigurator.configure(this.getClass.getClassLoader.getResource("property/log4j.properties").getPath)
+  PropertyConfigurator.configure(this.getClass.getClassLoader.getResource("property/log4j.properties").getPath)
 
   private val conf: Configuration = HBaseConfiguration.create
   conf.set("hbase.zookeeper.property.clientPort", "" + HBaseConfig.hbase_zookeeper_property_clientPort)
@@ -129,6 +124,13 @@ object HBaseManager {
     }
   }
 
+  def testConnection[T](clazz: Class[T]): Unit = {
+    val table: Table = getTable(clazz)
+    if (table != null) {
+      releaseTable(table)
+    }
+  }
+
   def scan[T: ClassTag](clazz: Class[T], startRow: String, stopRow: String, filters: ColumnFilter*): Array[T] = {
     val resultList: ArrayBuffer[T] = new ArrayBuffer[T]
     val table: Table = getTable(clazz)
@@ -185,8 +187,8 @@ object HBaseManager {
     var t: T = null.asInstanceOf[T]
     val table: Table = getTable(clazz)
     if (table != null) {
-      val get: Get = new Get(Bytes.toBytes(rowId))
       try {
+        val get: Get = new Get(Bytes.toBytes(rowId))
         val result: Result = table.get(get)
         if (result != null) {
           t = resultToObject(result, clazz)
@@ -204,9 +206,9 @@ object HBaseManager {
   private def resultToObject[T](result: Result, clazz: Class[T]): T = {
     var t: T = null.asInstanceOf[T]
     if (result != null) {
-      val cells: java.util.List[Cell] = result.listCells
-      if (cells != null) {
-        try {
+      try {
+        val cells: java.util.List[Cell] = result.listCells
+        if (cells != null) {
           t = clazz.newInstance
           setValue(clazz, t, getRowKeyName(clazz), result.getRow)
           import scala.collection.JavaConversions._
@@ -216,10 +218,10 @@ object HBaseManager {
             setValue(clazz, t, key, value)
           }
         }
-        catch {
-          case e: Exception =>
-            e.printStackTrace()
-        }
+      }
+      catch {
+        case e: Exception =>
+          e.printStackTrace()
       }
     }
     t
