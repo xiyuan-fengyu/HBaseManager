@@ -2,10 +2,11 @@ package com.xiyuan.demo
 
 import java.util.Date
 
-import com.xiyuan.demo.model.{HotNews, HBaseTest}
+import com.xiyuan.demo.model.{DirtyMsg, HotNews, HBaseTest}
 import com.xiyuan.hbase.HBaseManager
 import com.xiyuan.hbase.filter.ColumnFilter
 import com.xiyuan.demo.extension.RandomExt._
+import com.xiyuan.template.log.XYLog
 
 import scala.collection.mutable.ArrayBuffer
 
@@ -63,6 +64,18 @@ object App {
 //      ColumnFilter("column0 <= 60")
 //    ).foreach(println)
 
+
+    //获取记录
+//    XYLog.d(HBaseManager.find(classOf[DirtyMsg], "000021816862"))
+
+    //删除一条记录
+//    HBaseManager.delete(classOf[DirtyMsg], "000021816862")
+//    XYLog.d(HBaseManager.find(classOf[DirtyMsg], "000021816862"))
+//
+//    //删除多条记录
+//    XYLog.d(HBaseManager.scan(classOf[DirtyMsg],"000021816862", "000021816865"))
+//    HBaseManager.deleteList(classOf[DirtyMsg], Array("000021816862", "000021816865"))
+//    XYLog.d(HBaseManager.scan(classOf[DirtyMsg],"000021816862", "000021816865"))
   }
 
 }

@@ -22,7 +22,7 @@ import scala.reflect.ClassTag
   */
 object HBaseManager {
 
-  PropertyConfigurator.configure(this.getClass.getClassLoader.getResource("property/log4j.properties").getPath)
+  PropertyConfigurator.configure(this.getClass.getClassLoader.getResource(HBaseConfig.log4j_config).getPath)
 
   private val conf: Configuration = HBaseConfiguration.create
   conf.set("hbase.zookeeper.property.clientPort", "" + HBaseConfig.hbase_zookeeper_property_clientPort)
@@ -43,7 +43,7 @@ object HBaseManager {
       val tableNameObj: TableName = TableName.valueOf(tableName)
       if (!admin.tableExists(tableNameObj)) {
         val tblDesc: HTableDescriptor = new HTableDescriptor(tableNameObj)
-        val fields: Array[Field] = clazz.getFields
+        val fields: Array[Field] = clazz.getDeclaredFields
         for (field <- fields) {
           if (isColumn(field)) {
             tblDesc.addFamily(new HColumnDescriptor(getColumnName(field)))
@@ -127,6 +127,25 @@ object HBaseManager {
   def testConnection[T](clazz: Class[T]): Unit = {
     val table: Table = getTable(clazz)
     if (table != null) {
+      releaseTable(table)
+    }
+  }
+
+  def delete[T](clazz: Class[T], rowId: String): Unit = {
+    val table: Table = getTable(clazz)
+    if (table != null) {
+      val delete = new Delete(Bytes.toBytes(rowId))
+      table.delete(delete)
+      releaseTable(table)
+    }
+  }
+
+  def deleteList[T](clazz: Class[T], rowIds: Array[String]): Unit = {
+    val table: Table = getTable(clazz)
+    if (table != null) {
+      val deleteL = new java.util.ArrayList[Delete]()
+      rowIds.foreach(item => deleteL.add(new Delete(Bytes.toBytes(item))))
+      table.delete(deleteL)
       releaseTable(table)
     }
   }
@@ -293,7 +312,7 @@ object HBaseManager {
   }
 
   private def getRowKeyName[T](clazz: Class[T]): String = {
-    val fields: Array[Field] = clazz.getFields
+    val fields: Array[Field] = clazz.getDeclaredFields
     for (field <- fields) {
       val rowKeyAnno: RowKey = field.getAnnotation(classOf[RowKey])
       if (rowKeyAnno != null) {
@@ -375,6 +394,7 @@ object HBaseManager {
   private def fieldValueToBytes[T](clazz: Class[T], instance: T, field: Field): Array[Byte] = {
     var result: Array[Byte] = null
     val fieldType: Class[_] = field.getType
+    field.setAccessible(true)
     var value: AnyRef = null
     try {
       value = field.get(instance)
@@ -413,6 +433,7 @@ object HBaseManager {
   private def setValue[T](clazz: Class[T], instance: T, key: String, value: Array[Byte]) {
     try {
       val field: Field = clazz.getDeclaredField(key)
+      field.setAccessible(true)
       val fieldType: Class[_] = field.getType
       if (fieldType ==classOf[String]) {
         field.set(instance, Bytes.toString(value))
