@@ -20,19 +20,19 @@ object App {
 //    HBaseManager.testConnection(classOf[HBaseTest])
 
     //删除表
-//    HBaseManager.deleteTable(classOf[HBaseTest])
+    HBaseManager.deleteTable(classOf[HBaseTest])
 
-//    //插入一条数据
-//    val now = new Date().getTime
-//    val temp = new HBaseTest()
-//    //rowkey格式：type（2位） + timestamp（13位） + uniqueId（5位）
-//    temp.id = "%2d".format(21).replaceAll(" ", "0") + now + "%5d".format(99999.random).replaceAll(" ", "0")
-//    temp.column0 = "" + 0
-//    temp.column1 = "" + 0
-//    temp.column2 = "" + 0
-//    HBaseManager.save(temp)
-//    //根据rowId来查询记录
-//    println(HBaseManager.find(classOf[HBaseTest], temp.id))
+    //插入一条数据
+    val now = new Date().getTime
+    val temp = new HBaseTest()
+    //rowkey格式：type（2位） + timestamp（13位） + uniqueId（5位）
+    temp.id = "%2d".format(21).replaceAll(" ", "0") + now + "%5d".format(99999.random).replaceAll(" ", "0")
+    temp.column0 = "" + 0
+    temp.column1 = "" + 0
+    temp.column2 = "" + 0
+    HBaseManager.save(temp)
+    //根据rowId来查询记录
+    println(HBaseManager.find(classOf[HBaseTest], temp.id))
 
     //插入一组数据
 //    val threeDay: Long = 1000L * 3600L * 72

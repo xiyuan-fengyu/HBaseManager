@@ -7,7 +7,7 @@ import com.xiyuan.hbase.annotation.Table;
 /**
  * Created by xiyuan_fengyu on 2016/7/1.
  */
-@Table(name="hbaseTest")
+@Table(name="HBaseTest")
 public class HBaseTest {
 
 	@RowKey
